@@ -28,9 +28,9 @@ func snippetCreate(w http.ResponseWriter,r*http.Request){
 
 func main() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/{$}",home)
-	mux.HandleFunc("/snippet/view/{id}",snippetview)
-	mux.HandleFunc("/snippet/create",snippetCreate)
+	mux.HandleFunc("GET /{$}",home)
+	mux.HandleFunc("GET /snippet/view/{id}",snippetview)
+	mux.HandleFunc("GET /snippet/create",snippetCreate)
 	log.Print("starting server on 4000")
 	
 
