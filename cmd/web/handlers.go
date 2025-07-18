@@ -16,14 +16,14 @@ files := []string{
 }
 ts,err := template.ParseFiles(files...)
 if err != nil {
-	app.logger.Error(err.Error(),"method",r.Method,"url",r.URL.RequestURI())
+	app.serverError(w,r,err)
 	http.Error(w,"internal server error",http.StatusInternalServerError)
 	return
 }
 
 err = ts.ExecuteTemplate(w,"base",nil)
 if err != nil {
-	app.logger.Error(err.Error(), "method", r.Method, "uri", r.URL.RequestURI())
+	app.serverError(w,r,err)
 	http.Error(w,"internal server error",http.StatusInternalServerError)
 }
 
