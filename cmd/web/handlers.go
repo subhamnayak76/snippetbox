@@ -15,9 +15,11 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, r, err)
 		return
 	}
-	app.render(w, r, http.StatusOK, "home.tmpl", templateData{
-		Snippets: snippets,
-	})
+
+	data := app.newTemplateData(r)
+	data.Snippets = snippets
+	// Pass the data to the render() helper as normal.
+	app.render(w, r, http.StatusOK, "home.tmpl", data)
 }
 
 func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
@@ -35,11 +37,9 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	// Initialize a slice containing the paths to the view.tmpl file,
-	// plus the base layout and navigation partial that we made earlier.
-	app.render(w, r, http.StatusOK, "view.tmpl", templateData{
-		Snippet: snippet,
-	})
+	data := app.newTemplateData(r)
+data.Snippet = snippet
+app.render(w, r, http.StatusOK, "view.tmpl", data)
 }
 
 func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
