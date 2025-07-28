@@ -10,6 +10,13 @@ import (
 	"unicode/utf8"
 )
 
+type snippetCreateForm struct {
+	Title       string
+	Content     string
+	Expires     int
+	FieldErrors map[string]string
+}
+
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
 	snippets, err := app.snippets.Latest()
@@ -51,38 +58,42 @@ func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		app.clientError(w,http.StatusBadRequest)
+		app.clientError(w, http.StatusBadRequest)
 	}
 
-	title := r.PostForm.Get("title")
-	content := r.PostForm.Get("content")
-	expires ,err := strconv.Atoi(r.PostForm.Get("expires"))
+	expires, err := strconv.Atoi(r.PostForm.Get("expires"))
 	if err != nil {
-		app.clientError(w,http.StatusBadRequest)
-	}
-	fieldsErrors := make(map[string]string)
-
-	if strings.TrimSpace(title) == ""{
-		fieldsErrors["title"] = "this field cannot be blanked"
-	}else if utf8.RuneCountInString(title) > 100 {
-		fieldsErrors["title"] ="this fields cannot be more than 100 characters long"
-	}
-
-	if strings.TrimSpace(content) == ""{
-		fieldsErrors["content"] = "this field cannnot be more than 100 chars"
-	}
-
-	if expires != 1 && expires != 7 && expires != 345 {
-		fieldsErrors["expires"] = "this should be equal 1,7,or 365"
-	}
-	
-	if len(fieldsErrors )> 0 {
-		fmt.Fprint(w,fieldsErrors)
+		app.clientError(w, http.StatusBadRequest)
 		return
 	}
 
+	form := snippetCreateForm{
+		Title:       r.PostForm.Get("title"),
+		Content:     r.PostForm.Get("content"),
+		Expires:     expires,
+		FieldErrors: map[string]string{},
+	}
 
-	id, err := app.snippets.Insert(title, content, expires)
+	if strings.TrimSpace(form.Title) == "" {
+		form.FieldErrors["title"] = "this field cannot be blanked"
+	} else if utf8.RuneCountInString(form.Title) > 100 {
+		form.FieldErrors["title"] = "this fields cannot be more than 100 characters long"
+	}
+
+	if strings.TrimSpace(form.Content) == "" {
+		form.FieldErrors["content"] = "this field cannnot be more than 100 chars"
+	}
+
+	if expires != 1 && expires != 7 && expires != 345 {
+		form.FieldErrors["expires"] = "this should be equal 1,7,or 365"
+	}
+
+	if len(form.FieldErrors) > 0 {
+		fmt.Fprint(w, form.FieldErrors)
+		return
+	}
+
+	id, err := app.snippets.Insert(form.Title, form.Content, form.Expires)
 	if err != nil {
 		app.serverError(w, r, err)
 		return
